@@ -32,11 +32,14 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    await client.connect();
     const usersCollection = client.db("tourisguide").collection("users");
+    const storisCollection = client.db("tourisguide").collection("storis");
+    const packagesCollection = client.db("tourisguide").collection("packages");
+    const wishlistCollection = client.db("tourisguide").collection("wishlist");
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      console.log("I need a new jwt", user);
       const token = jwt.sign(user, secretToken, {
         expiresIn: "365d",
       });
@@ -63,7 +66,41 @@ async function run() {
         res.status(500).send(err);
       }
     });
-
+    app.post("/wishlist", async (req, res) => {
+      const addwishlist = req.body;
+      const result = await wishlistCollection.insertOne(addwishlist);
+      res.send(result);
+    });
+    app.post("/packages", async (req, res) => {
+      const addPackages = req.body;
+      const result = await packagesCollection.insertOne(addPackages);
+      res.send(result);
+    });
+    app.get("/packages/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await packagesCollection.findOne(query);
+      res.send(result);
+    });
+    app.get("/packages", async (req, res) => {
+      const result = await packagesCollection.find().toArray();
+      res.send(result);
+    });
+    app.post("/storis", async (req, res) => {
+      const addData = req.body;
+      const result = await storisCollection.insertOne(addData);
+      res.send(result);
+    });
+    app.get("/storis", async (req, res) => {
+      const result = await storisCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/storis/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await storisCollection.findOne(query);
+      res.send(result);
+    });
     app.put("/users/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -81,7 +118,33 @@ async function run() {
       );
       res.send(result);
     });
-
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/tourguides", async (req, res) => {
+      const query = { role: "tourguide" };
+      const result = await usersCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.patch("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const addData = req.body.role;
+      const query = { _id: new ObjectId(id) };
+      const updateData = {
+        $set: {
+          role: addData,
+        },
+      };
+      const result = await usersCollection.updateOne(query, updateData);
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
