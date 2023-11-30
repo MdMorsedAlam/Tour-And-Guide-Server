@@ -37,6 +37,8 @@ async function run() {
     const storisCollection = client.db("tourisguide").collection("storis");
     const packagesCollection = client.db("tourisguide").collection("packages");
     const wishlistCollection = client.db("tourisguide").collection("wishlist");
+    const bookingsCollection = client.db("tourisguide").collection("bookings");
+    const guidesCollection = client.db("tourisguide").collection("guides");
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -66,9 +68,86 @@ async function run() {
         res.status(500).send(err);
       }
     });
+    app.post("/guides", async (req, res) => {
+      const guideData = req.body;
+      const result = await guidesCollection.insertOne(guideData);
+      res.send(result);
+    });
+    app.get("/tourguides", async (req, res) => {
+      const result = await guidesCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/guides/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await guidesCollection.findOne(query);
+      res.send(result);
+    });
+    app.post("/bookings", async (req, res) => {
+      const addData = req.body;
+      const result = await bookingsCollection.insertOne(addData);
+      res.send(result);
+    });
+    app.get("/bookings/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await bookingsCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.get("/mybookings/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { gemail: email };
+      const result = await bookingsCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.delete("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.patch("/update-status-reject/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      console.log(id, data);
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: data.status,
+        },
+      };
+      const result = await bookingsCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+    app.patch("/update-status-accept/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      console.log(id, data);
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: data.status,
+        },
+      };
+      const result = await bookingsCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
     app.post("/wishlist", async (req, res) => {
       const addwishlist = req.body;
       const result = await wishlistCollection.insertOne(addwishlist);
+      res.send(result);
+    });
+    app.get("/wishlist/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await wishlistCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.delete("/wishlist/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishlistCollection.deleteOne(query);
       res.send(result);
     });
     app.post("/packages", async (req, res) => {
@@ -128,11 +207,7 @@ async function run() {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
-    app.get("/tourguides", async (req, res) => {
-      const query = { role: "tourguide" };
-      const result = await usersCollection.find(query).toArray();
-      res.send(result);
-    });
+
     app.patch("/user/:id", async (req, res) => {
       const id = req.params.id;
       const addData = req.body.role;
