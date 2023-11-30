@@ -39,6 +39,7 @@ async function run() {
     const wishlistCollection = client.db("tourisguide").collection("wishlist");
     const bookingsCollection = client.db("tourisguide").collection("bookings");
     const guidesCollection = client.db("tourisguide").collection("guides");
+    const typesCollection = client.db("tourisguide").collection("packagetypes");
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -163,6 +164,16 @@ async function run() {
     });
     app.get("/packages", async (req, res) => {
       const result = await packagesCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/packagetypes", async (req, res) => {
+      const result = await typesCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/package-type", async (req, res) => {
+      const type = req.query.name;
+      const query = { type: type };
+      const result = await packagesCollection.find(query).toArray();
       res.send(result);
     });
     app.post("/storis", async (req, res) => {
